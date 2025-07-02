@@ -38,7 +38,7 @@
         document.head.appendChild(script);
     }
 
-    function showModal(highlightTicketId = null) {
+    function showModal(highlightTicketId = null, editTicketId = null) {
         loadMarked(() => {
         // Remove existing modal if present
         let old = document.getElementById('ticket-watchlist-modal');
@@ -181,6 +181,7 @@
                 ticketLink.style.color = '#0077b6';
                 ticketLink.style.fontWeight = 'bold';
                 ticketLink.style.cursor = 'pointer';
+                ticketLink.style.fontFamily = 'SFMono-Regular, Menlo, Monaco, Consolas, monospace';
                 ticketLink.onmouseover = () => ticketLink.style.textDecoration = 'underline';
                 ticketLink.onmouseout = () => ticketLink.style.textDecoration = 'none';
                 ticketCell.appendChild(ticketLink);
@@ -201,6 +202,7 @@
 
                 // Markdown rendering/editing logic
                 let isEditing = false;
+                let textareaRef = null;
                 function renderComment() {
                     commentCell.innerHTML = '';
                     let commentDiv = document.createElement('div');
@@ -212,7 +214,7 @@
                     commentCell.appendChild(commentDiv);
                     renderActionButtons();
                 }
-                function renderEditor() {
+                function renderEditor(focusNow = false) {
                     commentCell.innerHTML = '';
                     let textarea = document.createElement('textarea');
                     textarea.value = item.comment || '';
@@ -228,18 +230,15 @@
                     textarea.addEventListener('paste', function(e) {
                         const clipboardData = e.clipboardData || window.clipboardData;
                         const pasted = clipboardData.getData('text');
-                        // Simple URL regex
                         const urlRegex = /^(https?:\/\/[^\s]+)$/i;
                         if (urlRegex.test(pasted)) {
                             const selStart = textarea.selectionStart;
                             const selEnd = textarea.selectionEnd;
                             if (selStart !== selEnd) {
                                 const selectedText = textarea.value.substring(selStart, selEnd);
-                                // Replace selection with markdown link
                                 const before = textarea.value.substring(0, selStart);
                                 const after = textarea.value.substring(selEnd);
                                 textarea.value = before + `[${selectedText}](${pasted})` + after;
-                                // Move cursor after the inserted link
                                 const newPos = before.length + `[${selectedText}](${pasted})`.length;
                                 textarea.selectionStart = textarea.selectionEnd = newPos;
                                 e.preventDefault();
@@ -247,6 +246,8 @@
                         }
                     });
                     commentCell.appendChild(textarea);
+                    textareaRef = textarea;
+                    if (focusNow) setTimeout(() => textarea.focus(), 0);
                     let saveBtn = document.createElement('button');
                     saveBtn.textContent = 'Save';
                     saveBtn.style.marginRight = '6px';
@@ -283,7 +284,6 @@
                 }
                 function renderActionButtons() {
                     actionCell.innerHTML = '';
-                    // Edit button (pencil)
                     let editBtn = document.createElement('button');
                     editBtn.textContent = '✏️';
                     editBtn.title = 'Edit comment';
@@ -297,11 +297,10 @@
                     editBtn.style.marginRight = '8px';
                     editBtn.onclick = function() {
                         isEditing = true;
-                        renderEditor();
+                        renderEditor(true);
                         renderActionButtons();
                     };
                     actionCell.appendChild(editBtn);
-                    // Delete button (trash can)
                     let delBtn = document.createElement('button');
                     delBtn.textContent = '🗑️';
                     delBtn.title = 'Delete ticket';
@@ -322,7 +321,12 @@
                     actionCell.appendChild(delBtn);
                 }
                 // Initial render and append
-                renderComment();
+                if (editTicketId && item.ticket === editTicketId) {
+                    isEditing = true;
+                    renderEditor(true);
+                } else {
+                    renderComment();
+                }
                 row.appendChild(commentCell);
                 row.appendChild(actionCell);
                 tbody.appendChild(row);
@@ -395,7 +399,7 @@
             let ticket = getSelectedText();
             if (ticket) {
                 addTicket(ticket);
-                showModal(ticket); // highlight the new ticket
+                showModal(ticket, ticket); // highlight and edit the new ticket
             } else {
                 showModal(); // just open modal if nothing selected
             }
