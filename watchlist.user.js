@@ -284,8 +284,8 @@
                 }
                 function renderActionButtons() {
                     actionCell.innerHTML = '';
+                    // Edit button (modern pencil SVG)
                     let editBtn = document.createElement('button');
-                    editBtn.textContent = '✏️';
                     editBtn.title = 'Edit comment';
                     editBtn.style.background = '#f7f7f7';
                     editBtn.style.color = '#333';
@@ -295,14 +295,17 @@
                     editBtn.style.fontSize = '1.1em';
                     editBtn.style.padding = '2px 8px';
                     editBtn.style.marginRight = '8px';
+                    editBtn.style.display = 'inline-flex';
+                    editBtn.style.alignItems = 'center';
+                    editBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.69 3.86l1.45-1.45a1.5 1.5 0 1 1 2.12 2.12l-1.45 1.45m-2.12-2.12L4.5 15.5l-2 2 2-2 10.07-10.07zm0 0l2.12 2.12" stroke="#222" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
                     editBtn.onclick = function() {
                         isEditing = true;
                         renderEditor(true);
                         renderActionButtons();
                     };
                     actionCell.appendChild(editBtn);
+                    // Delete button (modern trash SVG)
                     let delBtn = document.createElement('button');
-                    delBtn.textContent = '🗑️';
                     delBtn.title = 'Delete ticket';
                     delBtn.style.background = '#ffeded';
                     delBtn.style.color = '#c00';
@@ -311,6 +314,9 @@
                     delBtn.style.cursor = 'pointer';
                     delBtn.style.fontSize = '1.1em';
                     delBtn.style.padding = '2px 8px';
+                    delBtn.style.display = 'inline-flex';
+                    delBtn.style.alignItems = 'center';
+                    delBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="7" width="10" height="9" rx="2" stroke="#c00" stroke-width="1.5"/><path d="M3 7h14" stroke="#c00" stroke-width="1.5" stroke-linecap="round"/><path d="M8 7V5a2 2 0 0 1 4 0v2" stroke="#c00" stroke-width="1.5"/></svg>`;
                     delBtn.onclick = function() {
                         let list = getWatchlist();
                         list.splice(idx, 1);
@@ -358,6 +364,14 @@
             }
         }
         setTimeout(() => document.addEventListener('keydown', escListener), 0);
+
+        // Close modal when clicking outside the content area
+        modal.addEventListener('mousedown', function(e) {
+            if (e.target === modal) {
+                modal.remove();
+                document.removeEventListener('keydown', escListener);
+            }
+        });
         }); // end loadMarked
     }
 
