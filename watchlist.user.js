@@ -29,7 +29,17 @@
         }
     }
 
+    // Dynamically load marked.js for Markdown rendering
+    function loadMarked(callback) {
+        if (window.marked) return callback();
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        script.onload = callback;
+        document.head.appendChild(script);
+    }
+
     function showModal(highlightTicketId = null) {
+        loadMarked(() => {
         // Remove existing modal if present
         let old = document.getElementById('ticket-watchlist-modal');
         if (old) old.remove();
@@ -135,7 +145,6 @@
             table.style.borderCollapse = 'collapse';
             table.style.marginBottom = '12px';
 
-            // Table header (visually hidden for accessibility)
             let thead = document.createElement('thead');
             let headerRow = document.createElement('tr');
             ['Ticket', 'Comment', ''].forEach(text => {
@@ -156,7 +165,6 @@
             list.forEach((item, idx) => {
                 let row = document.createElement('tr');
                 row.style.verticalAlign = 'top';
-                // Highlight if this is the newly added ticket
                 if (highlightTicketId && item.ticket === highlightTicketId) {
                     row.style.background = '#fffbe6';
                     row.style.transition = 'background 0.8s';
@@ -164,7 +172,6 @@
 
                 // Ticket cell
                 let ticketCell = document.createElement('td');
-                // Make ticket number a hyperlink
                 let ticketLink = document.createElement('a');
                 ticketLink.href = `https://nirvana.shopifyapps.com/tickets/${encodeURIComponent(item.ticket)}`;
                 ticketLink.textContent = item.ticket;
@@ -186,47 +193,138 @@
                 let commentCell = document.createElement('td');
                 commentCell.style.padding = '4px 8px 4px 0';
                 commentCell.style.border = 'none';
-                let textarea = document.createElement('textarea');
-                textarea.value = item.comment || '';
-                textarea.rows = 2;
-                textarea.style.width = '98%';
-                textarea.style.minWidth = '120px';
-                textarea.style.borderRadius = '4px';
-                textarea.style.border = '1px solid #eee';
-                textarea.style.padding = '4px';
-                textarea.style.fontSize = '1em';
-                textarea.oninput = function() {
-                    let list = getWatchlist();
-                    list[idx].comment = textarea.value;
-                    saveWatchlist(list);
-                };
-                commentCell.appendChild(textarea);
+
+                // Action buttons cell (edit and delete)
+                let actionCell = document.createElement('td');
+                actionCell.style.padding = '4px 0 4px 0';
+                actionCell.style.border = 'none';
+
+                // Markdown rendering/editing logic
+                let isEditing = false;
+                function renderComment() {
+                    commentCell.innerHTML = '';
+                    let commentDiv = document.createElement('div');
+                    commentDiv.style.minHeight = '2.2em';
+                    commentDiv.style.fontSize = '1em';
+                    commentDiv.style.lineHeight = '1.5';
+                    commentDiv.style.wordBreak = 'break-word';
+                    commentDiv.innerHTML = window.marked ? window.marked.parse(item.comment || '') : (item.comment || '');
+                    commentCell.appendChild(commentDiv);
+                    renderActionButtons();
+                }
+                function renderEditor() {
+                    commentCell.innerHTML = '';
+                    let textarea = document.createElement('textarea');
+                    textarea.value = item.comment || '';
+                    textarea.rows = 3;
+                    textarea.style.width = '98%';
+                    textarea.style.minWidth = '120px';
+                    textarea.style.borderRadius = '4px';
+                    textarea.style.border = '1px solid #eee';
+                    textarea.style.padding = '4px';
+                    textarea.style.fontSize = '1em';
+                    textarea.style.marginBottom = '4px';
+                    // Paste event for markdown link
+                    textarea.addEventListener('paste', function(e) {
+                        const clipboardData = e.clipboardData || window.clipboardData;
+                        const pasted = clipboardData.getData('text');
+                        // Simple URL regex
+                        const urlRegex = /^(https?:\/\/[^\s]+)$/i;
+                        if (urlRegex.test(pasted)) {
+                            const selStart = textarea.selectionStart;
+                            const selEnd = textarea.selectionEnd;
+                            if (selStart !== selEnd) {
+                                const selectedText = textarea.value.substring(selStart, selEnd);
+                                // Replace selection with markdown link
+                                const before = textarea.value.substring(0, selStart);
+                                const after = textarea.value.substring(selEnd);
+                                textarea.value = before + `[${selectedText}](${pasted})` + after;
+                                // Move cursor after the inserted link
+                                const newPos = before.length + `[${selectedText}](${pasted})`.length;
+                                textarea.selectionStart = textarea.selectionEnd = newPos;
+                                e.preventDefault();
+                            }
+                        }
+                    });
+                    commentCell.appendChild(textarea);
+                    let saveBtn = document.createElement('button');
+                    saveBtn.textContent = 'Save';
+                    saveBtn.style.marginRight = '6px';
+                    saveBtn.style.background = '#e6f7ff';
+                    saveBtn.style.color = '#0077b6';
+                    saveBtn.style.border = '1px solid #b3e0ff';
+                    saveBtn.style.borderRadius = '4px';
+                    saveBtn.style.cursor = 'pointer';
+                    saveBtn.style.fontSize = '0.95em';
+                    saveBtn.style.padding = '2px 10px';
+                    saveBtn.onclick = function() {
+                        let list = getWatchlist();
+                        list[idx].comment = textarea.value;
+                        item.comment = textarea.value;
+                        saveWatchlist(list);
+                        isEditing = false;
+                        renderComment();
+                    };
+                    commentCell.appendChild(saveBtn);
+                    let cancelBtn = document.createElement('button');
+                    cancelBtn.textContent = 'Cancel';
+                    cancelBtn.style.background = '#f7f7f7';
+                    cancelBtn.style.color = '#333';
+                    cancelBtn.style.border = '1px solid #bbb';
+                    cancelBtn.style.borderRadius = '4px';
+                    cancelBtn.style.cursor = 'pointer';
+                    cancelBtn.style.fontSize = '0.95em';
+                    cancelBtn.style.padding = '2px 10px';
+                    cancelBtn.onclick = function() {
+                        isEditing = false;
+                        renderComment();
+                    };
+                    commentCell.appendChild(cancelBtn);
+                }
+                function renderActionButtons() {
+                    actionCell.innerHTML = '';
+                    // Edit button (pencil)
+                    let editBtn = document.createElement('button');
+                    editBtn.textContent = '✏️';
+                    editBtn.title = 'Edit comment';
+                    editBtn.style.background = '#f7f7f7';
+                    editBtn.style.color = '#333';
+                    editBtn.style.border = '1px solid #bbb';
+                    editBtn.style.borderRadius = '4px';
+                    editBtn.style.cursor = 'pointer';
+                    editBtn.style.fontSize = '1.1em';
+                    editBtn.style.padding = '2px 8px';
+                    editBtn.style.marginRight = '8px';
+                    editBtn.onclick = function() {
+                        isEditing = true;
+                        renderEditor();
+                        renderActionButtons();
+                    };
+                    actionCell.appendChild(editBtn);
+                    // Delete button (trash can)
+                    let delBtn = document.createElement('button');
+                    delBtn.textContent = '🗑️';
+                    delBtn.title = 'Delete ticket';
+                    delBtn.style.background = '#ffeded';
+                    delBtn.style.color = '#c00';
+                    delBtn.style.border = '1px solid #fbb';
+                    delBtn.style.borderRadius = '4px';
+                    delBtn.style.cursor = 'pointer';
+                    delBtn.style.fontSize = '1.1em';
+                    delBtn.style.padding = '2px 8px';
+                    delBtn.onclick = function() {
+                        let list = getWatchlist();
+                        list.splice(idx, 1);
+                        saveWatchlist(list);
+                        modal.remove();
+                        showModal();
+                    };
+                    actionCell.appendChild(delBtn);
+                }
+                // Initial render and append
+                renderComment();
                 row.appendChild(commentCell);
-
-                // Delete button cell
-                let delCell = document.createElement('td');
-                delCell.style.padding = '4px 0 4px 0';
-                delCell.style.border = 'none';
-                let delBtn = document.createElement('button');
-                delBtn.textContent = '✕';
-                delBtn.title = 'Delete ticket';
-                delBtn.style.background = '#ffeded';
-                delBtn.style.color = '#c00';
-                delBtn.style.border = '1px solid #fbb';
-                delBtn.style.borderRadius = '4px';
-                delBtn.style.cursor = 'pointer';
-                delBtn.style.fontSize = '1.1em';
-                delBtn.style.padding = '2px 8px';
-                delBtn.onclick = function() {
-                    let list = getWatchlist();
-                    list.splice(idx, 1);
-                    saveWatchlist(list);
-                    modal.remove();
-                    showModal();
-                };
-                delCell.appendChild(delBtn);
-
-                row.appendChild(delCell);
+                row.appendChild(actionCell);
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
@@ -256,6 +354,7 @@
             }
         }
         setTimeout(() => document.addEventListener('keydown', escListener), 0);
+        }); // end loadMarked
     }
 
     function getSelectedText() {
