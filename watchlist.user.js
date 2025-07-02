@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Ticket Watchlist
 // @namespace    http://tampermonkey.net/
-// @version      1.1.2
+// @version      1.1.3
 // @description  Watchlist tickets and add comments via hotkeys
 // @author       You
 // @match        *://*/*
@@ -284,7 +284,7 @@
                 }
                 function renderActionButtons() {
                     actionCell.innerHTML = '';
-                    // Edit button (Polaris EditIcon SVG)
+                    // Edit button (Polaris SVG provided by user)
                     let editBtn = document.createElement('button');
                     editBtn.title = 'Edit comment';
                     editBtn.style.background = '#f7f7f7';
@@ -297,14 +297,14 @@
                     editBtn.style.marginRight = '8px';
                     editBtn.style.display = 'inline-flex';
                     editBtn.style.alignItems = 'center';
-                    editBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none" width="18" height="18"><path d="M14.7 3.3a1 1 0 0 1 1.4 0l0.6 0.6a1 1 0 0 1 0 1.4l-9.2 9.2-2.1 0.7 0.7-2.1 9.2-9.2z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M13.3 5.1l1.6 1.6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>`;
+                    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="18" height="18"><path fill-rule="evenodd" d="M15.655 4.344a2.695 2.695 0 0 0-3.81 0l-.599.599-.009-.009-1.06 1.06.008.01-5.88 5.88a2.75 2.75 0 0 0-.805 1.944v1.922a.75.75 0 0 0 .75.75h1.922a2.75 2.75 0 0 0 1.944-.806l7.54-7.539a2.695 2.695 0 0 0 0-3.81Zm-4.409 2.72-5.88 5.88a1.25 1.25 0 0 0-.366.884v1.172h1.172c.331 0 .65-.132.883-.366l5.88-5.88-1.689-1.69Zm2.75.629.599-.599a1.195 1.195 0 1 0-1.69-1.689l-.598.599 1.69 1.689Z"/></svg>`;
                     editBtn.onclick = function() {
                         isEditing = true;
                         renderEditor(true);
                         renderActionButtons();
                     };
                     actionCell.appendChild(editBtn);
-                    // Delete button (Polaris DeleteIcon SVG)
+                    // Delete button (Polaris SVG provided by user)
                     let delBtn = document.createElement('button');
                     delBtn.title = 'Delete ticket';
                     delBtn.style.background = '#ffeded';
@@ -316,7 +316,7 @@
                     delBtn.style.padding = '2px 8px';
                     delBtn.style.display = 'inline-flex';
                     delBtn.style.alignItems = 'center';
-                    delBtn.innerHTML = `<svg viewBox="0 0 20 20" fill="none" width="18" height="18"><rect x="5" y="7" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 7h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 7V5a2 2 0 0 1 4 0v2" stroke="currentColor" stroke-width="1.5"/></svg>`;
+                    delBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" width="18" height="18"><path d="M11.5 8.25a.75.75 0 0 1 .75.75v4.25a.75.75 0 0 1-1.5 0v-4.25a.75.75 0 0 1 .75-.75Z"/><path d="M9.25 9a.75.75 0 0 0-1.5 0v4.25a.75.75 0 0 0 1.5 0v-4.25Z"/><path fill-rule="evenodd" d="M7.25 5.25a2.75 2.75 0 0 1 5.5 0h3a.75.75 0 0 1 0 1.5h-.75v5.45c0 1.68 0 2.52-.327 3.162a3 3 0 0 1-1.311 1.311c-.642.327-1.482.327-3.162.327h-.4c-1.68 0-2.52 0-3.162-.327a3 3 0 0 1-1.311-1.311c-.327-.642-.327-1.482-.327-3.162v-5.45h-.75a.75.75 0 0 1 0-1.5h3Zm1.5 0a1.25 1.25 0 1 1 2.5 0h-2.5Zm-2.25 1.5h7v5.45c0 .865-.001 1.423-.036 1.848-.033.408-.09.559-.128.633a1.5 1.5 0 0 1-.655.655c-.074.038-.225.095-.633.128-.425.035-.983.036-1.848.036h-.4c-.865 0-1.423-.001-1.848-.036-.408-.033-.559-.09-.633-.128a1.5 1.5 0 0 1-.656-.655c-.037-.074-.094-.225-.127-.633-.035-.425-.036-.983-.036-1.848v-5.45Z"/></svg>`;
                     delBtn.onclick = function() {
                         let list = getWatchlist();
                         list.splice(idx, 1);
