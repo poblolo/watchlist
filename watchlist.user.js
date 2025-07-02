@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Ticket Watchlist
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.1.1
 // @description  Watchlist tickets and add comments via hotkeys
 // @author       You
 // @match        *://*/*
@@ -297,7 +297,7 @@
                     editBtn.style.marginRight = '8px';
                     editBtn.style.display = 'inline-flex';
                     editBtn.style.alignItems = 'center';
-                    editBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.69 3.86l1.45-1.45a1.5 1.5 0 1 1 2.12 2.12l-1.45 1.45m-2.12-2.12L4.5 15.5l-2 2 2-2 10.07-10.07zm0 0l2.12 2.12" stroke="#222" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                    editBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7 3.3a1 1 0 0 1 1.4 0l0.6 0.6a1 1 0 0 1 0 1.4l-9.2 9.2-2.1 0.7 0.7-2.1 9.2-9.2z" stroke="#222" stroke-width="1.5" fill="none"/><path d="M13.3 5.1l1.6 1.6" stroke="#222" stroke-width="1.5" fill="none"/></svg>`;
                     editBtn.onclick = function() {
                         isEditing = true;
                         renderEditor(true);
@@ -316,7 +316,7 @@
                     delBtn.style.padding = '2px 8px';
                     delBtn.style.display = 'inline-flex';
                     delBtn.style.alignItems = 'center';
-                    delBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="7" width="10" height="9" rx="2" stroke="#c00" stroke-width="1.5"/><path d="M3 7h14" stroke="#c00" stroke-width="1.5" stroke-linecap="round"/><path d="M8 7V5a2 2 0 0 1 4 0v2" stroke="#c00" stroke-width="1.5"/></svg>`;
+                    delBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="5" y="7" width="10" height="8" rx="2" stroke="#c00" stroke-width="1.5" fill="none"/><path d="M3 7h14" stroke="#c00" stroke-width="1.5" stroke-linecap="round"/><path d="M8 7V5a2 2 0 0 1 4 0v2" stroke="#c00" stroke-width="1.5"/></svg>`;
                     delBtn.onclick = function() {
                         let list = getWatchlist();
                         list.splice(idx, 1);
