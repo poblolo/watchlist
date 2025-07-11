@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Ticket Watchlist
 // @namespace    http://tampermonkey.net/
-// @version      1.1.5
+// @version      1.1.6
 // @description  Watchlist tickets and add comments via hotkeys
 // @author       You
 // @match        *://*/*
@@ -36,6 +36,25 @@
             list.push({ ticket, comment: '' });
             saveWatchlist(list);
         }
+    }
+
+    function getTicketNumber() {
+        // Try to get ticket number from the currently selected Zendesk ticket tab
+        const selectedTab = document.querySelector('[data-entity-type="ticket"][aria-selected="true"][data-entity-id]');
+        if (selectedTab) {
+            return selectedTab.getAttribute('data-entity-id');
+        }
+        // Fallback: Find text matching 'Question #12345678'
+        const regex = /Question\s+#(\d+)/;
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+        let node;
+        while (node = walker.nextNode()) {
+            const match = node.textContent.match(regex);
+            if (match) {
+                return match[1];
+            }
+        }
+        return '';
     }
 
     // Dynamically load marked.js for Markdown rendering
@@ -557,6 +576,11 @@
                     commentDiv.style.lineHeight = '1.5';
                     commentDiv.style.wordBreak = 'break-word';
                     commentDiv.innerHTML = window.marked ? window.marked.parse(item.comment || '') : (item.comment || '');
+                    // Ensure all links open in a new tab
+                    Array.from(commentDiv.querySelectorAll('a')).forEach(a => {
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                    });
                     commentCell.appendChild(commentDiv);
                     renderTagsView();
                     renderActionButtons();
@@ -756,7 +780,7 @@
             )
         ) {
             e.preventDefault();
-            let ticket = getSelectedText();
+            const ticket = getTicketNumber() || getSelectedText();
             if (ticket) {
                 addTicket(ticket);
                 showModal(ticket, ticket); // highlight and edit the new ticket
