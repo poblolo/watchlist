@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Ticket Watchlist
 // @namespace    http://tampermonkey.net/
-// @version      1.1.7
+// @version      1.1.8
 // @description  Watchlist tickets and add comments via hotkeys
 // @author       You
 // @include      *
@@ -12,6 +12,9 @@
 
 (function() {
     'use strict';
+    
+    // Test if script is loading at all
+    alert('Ticket Watchlist script is loading!');
     
     console.log('Ticket Watchlist script loaded!');
 
@@ -766,17 +769,6 @@
         }); // end loadMarked
     }
 
-    function getSelectedText() {
-        let text = window.getSelection().toString();
-        if (!text && document.activeElement && document.activeElement.value) {
-            let el = document.activeElement;
-            if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
-                text = el.value.substring(el.selectionStart, el.selectionEnd);
-            }
-        }
-        return text.trim();
-    }
-
     // Wait for DOM to be ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initScript);
@@ -819,4 +811,19 @@
         });
         console.log('Ticket Watchlist initialized successfully!');
     }
+
+    // Alternative initialization for OrangeMonkey compatibility
+    function forceInit() {
+        console.log('Force initializing Ticket Watchlist...');
+        try {
+            initScript();
+        } catch (error) {
+            console.error('Error initializing Ticket Watchlist:', error);
+        }
+    }
+
+    // Try multiple initialization approaches
+    setTimeout(forceInit, 100);
+    setTimeout(forceInit, 500);
+    setTimeout(forceInit, 1000);
 })();
