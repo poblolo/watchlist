@@ -1,15 +1,19 @@
 // ==UserScript==
 // @name         Ticket Watchlist
 // @namespace    http://tampermonkey.net/
-// @version      1.1.6
+// @version      1.1.7
 // @description  Watchlist tickets and add comments via hotkeys
 // @author       You
+// @include      *
 // @match        *://*/*
 // @grant        none
+// @run-at       document-end
 // ==/UserScript==
 
 (function() {
     'use strict';
+    
+    console.log('Ticket Watchlist script loaded!');
 
     const STORAGE_KEY = 'ticket_watchlist';
     const DONE_KEY = 'ticket_watchlist_done';
@@ -52,6 +56,23 @@
             const match = node.textContent.match(regex);
             if (match) {
                 return match[1];
+            }
+        }
+        return '';
+    }
+
+    function getSelectedText() {
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            return selection.toString().trim();
+        }
+        // Fallback for input fields
+        const activeElement = document.activeElement;
+        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+            const start = activeElement.selectionStart;
+            const end = activeElement.selectionEnd;
+            if (start !== end) {
+                return activeElement.value.substring(start, end);
             }
         }
         return '';
@@ -756,44 +777,46 @@
         return text.trim();
     }
 
-    document.addEventListener('keydown', function(e) {
-        console.log('keydown event:', {
-            altKey: e.altKey,
-            shiftKey: e.shiftKey,
-            key: e.key,
-            code: e.code,
-            keyCode: e.keyCode,
-            which: e.which,
-            metaKey: e.metaKey,
-            ctrlKey: e.ctrlKey
-        });
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initScript);
+    } else {
+        initScript();
+    }
 
-        // Option+W (add ticket) - open modal and highlight new ticket, no alert
-        if (
-            e.altKey && !e.shiftKey &&
-            (
-                e.key.toLowerCase() === 'w' ||
-                e.key === '∑' ||
+    function initScript() {
+        console.log('Initializing Ticket Watchlist...');
+        // Add keyboard event listener
+        document.addEventListener('keydown', function(e) {
+            // Option+W (Mac) - Add ticket and open modal
+            if (e.altKey && (
+                e.key.toLowerCase() === 'w' || 
+                e.key === '∑' || 
                 e.key === 'å' ||
                 (e.key === 'Dead' && e.code === 'KeyW') ||
                 (e.key === '' && e.code === 'KeyW')
-            )
-        ) {
-            e.preventDefault();
-            const ticket = getTicketNumber() || getSelectedText();
-            if (ticket) {
-                addTicket(ticket);
-                showModal(ticket, ticket); // highlight and edit the new ticket
-            } else {
-                showModal(); // just open modal if nothing selected
+            ) && !e.shiftKey) {
+                e.preventDefault();
+                const ticket = getTicketNumber() || getSelectedText();
+                if (ticket) {
+                    addTicket(ticket);
+                    showModal(ticket, ticket); // highlight and edit the new ticket
+                } else {
+                    showModal(); // just open modal if nothing selected
+                }
             }
-            return;
-        }
-        // Option+Shift+W (show modal) - open modal as usual
-        if (e.altKey && e.shiftKey && e.code === 'KeyW') {
-            e.preventDefault();
-            showModal();
-            return;
-        }
-    });
+            // Option+Shift+W (Mac) - Open modal only
+            else if (e.altKey && e.shiftKey && (
+                e.key.toLowerCase() === 'w' || 
+                e.key === '∑' || 
+                e.key === 'å' ||
+                (e.key === 'Dead' && e.code === 'KeyW') ||
+                (e.key === '' && e.code === 'KeyW')
+            )) {
+                e.preventDefault();
+                showModal();
+            }
+        });
+        console.log('Ticket Watchlist initialized successfully!');
+    }
 })();
